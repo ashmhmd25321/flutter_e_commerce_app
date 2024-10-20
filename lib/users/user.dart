@@ -1,6 +1,9 @@
 import 'package:ecommerce_app/dbConfig/constant.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:mongo_dart/mongo_dart.dart';
+
+import '../admin/manage users/manage_users.dart';
 
 class User {
   String username;
@@ -22,6 +25,76 @@ class User {
 
 class MongoDatabase {
   static const String collectionName = 'users';
+
+  static Future<User?> getUserByUsername(String username) async {
+    var db = await Db.create(MONGO_URL);
+    await db.open();
+    var collection = db.collection(collectionName);
+
+    var user = await collection.findOne(where.eq('username', username));
+    await db.close();
+
+    if (user != null) {
+      return User(
+        username: user['username'],
+        password: user['password'],
+        email: user['email'],
+        userRole: user['userRole'],
+        contactNumber: user['contactNumber'],
+        address: user['address'],
+      );
+    }
+    return null;
+  }
+
+  static Future<List<User>> getUsersByRole(String role) async {
+    var db = await Db.create(MONGO_URL);
+    await db.open();
+    var collection = db.collection(collectionName);
+
+    var users = await collection.find(where.eq('userRole', role)).toList();
+    await db.close();
+
+    return users.map((user) {
+      return User(
+        username: user['username'],
+        password: user['password'],
+        email: user['email'],
+        userRole: user['userRole'],
+        contactNumber: user['contactNumber'],
+        address: user['address'],
+      );
+    }).toList();
+  }
+
+  static Future<void> deleteUserByUsername(String username) async {
+    var db = await Db.create(MONGO_URL);
+    await db.open();
+    var collection = db.collection(collectionName);
+
+    await collection.remove(where.eq('username', username));
+    await db.close();
+  }
+
+  static Future<List<User>> getAllUsers() async {
+    var db = await Db.create(MONGO_URL);
+    await db.open();
+    var collection = db.collection(collectionName);
+
+    var users = await collection.find().toList();
+    await db.close();
+
+    return users.map((user) {
+      return User(
+        username: user['username'],
+        password: user['password'],
+        email: user['email'],
+        userRole: user['userRole'],
+        contactNumber: user['contactNumber'],
+        address: user['address'],
+      );
+    }).toList();
+  }
 
   static Future<void> registerUser(User user) async {
     var db = await Db.create(MONGO_URL);
@@ -45,15 +118,27 @@ class MongoDatabase {
     await db.close();
   }
 
-  static Future<bool> loginUser(String username, String password) async {
+  static Future<User?> loginUser(String username, String password) async {
     var db = await Db.create(MONGO_URL);
     await db.open();
     var collection = db.collection(collectionName);
 
-    var user = await collection
-        .findOne(where.eq('username', username).eq('password', password));
+    var user = await collection.findOne(
+      where.eq('username', username).eq('password', password),
+    );
     await db.close();
-    return user != null;
+
+    if (user != null) {
+      return User(
+        username: user['username'],
+        password: user['password'],
+        email: user['email'],
+        userRole: user['userRole'],
+        contactNumber: user['contactNumber'],
+        address: user['address'],
+      );
+    }
+    return null;
   }
 }
 
@@ -68,154 +153,96 @@ class RegisterPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 242, 248, 208), // Background color
-      body: Container(
-        margin: EdgeInsets.only(top: 50.0), // Add margin to the top of the body
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.all(15.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                // Sign Up Title
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Color.fromARGB(255, 131, 57, 8), // Border color
-                      width: 2.0, // Border width
-                    ),
-                    borderRadius: BorderRadius.circular(10.0), // Border radius
-                  ),
-                  padding:
-                      const EdgeInsets.all(10.0), // Padding around the text
-                  child: const Text(
-                    'SIGNUP',
-                    style: TextStyle(
-                      fontSize: 24.0,
-                      fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 131, 57, 8),
-                    ),
-                  ),
+      backgroundColor: Color.fromARGB(255, 242, 248, 208),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Animation at the top
+              Lottie.asset(
+                'assets/signUp_anuimation.json',
+                height: 150,
+                width: 150,
+                fit: BoxFit.cover,
+              ),
+              const SizedBox(height: 10),
+              // Title
+              const Text(
+                'Create Your Account',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF4A4A4A),
                 ),
-                SizedBox(height: 24.0),
-                // Username TextField
-                TextField(
-                  controller: usernameController,
-                  decoration: InputDecoration(
-                    labelText: 'Username',
-                    prefixIcon: Icon(Icons.person,
-                        color: Color.fromARGB(255, 131, 57, 8)),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 10.0),
-                // Password TextField
-                TextField(
-                  controller: passwordController,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: Icon(Icons.lock,
-                        color: const Color.fromARGB(255, 131, 57, 8)),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                  ),
-                  obscureText: true,
-                ),
-                SizedBox(height: 10.0),
-                // Email TextField
-                TextField(
-                  controller: emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email,
-                        color: Color.fromARGB(255, 131, 57, 8)),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 10.0),
-                // User Role Dropdown
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Color.fromARGB(255, 131, 57, 8), // Border color
-                      width: 2.0, // Border width
-                    ),
-                    borderRadius: BorderRadius.circular(10.0), // Border radius
-                  ),
-                  child: DropdownButtonFormField<String>(
-                    value: selectedUserRole,
-                    onChanged: (value) {
-                      selectedUserRole = value;
-                    },
-                    items: ['Admin', 'Customer']
-                        .map((role) => DropdownMenuItem(
-                              value: role,
-                              child: Text(role),
-                            ))
-                        .toList(),
-                    decoration: InputDecoration(
-                      labelText: 'User Role',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 10.0),
-                // Contact Number TextField
-                TextField(
-                  controller: contactNumberController,
-                  decoration: InputDecoration(
-                    labelText: 'Contact Number',
-                    prefixIcon: Icon(Icons.phone,
-                        color: const Color.fromARGB(255, 131, 57, 8)),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 10.0),
-                // Address TextField
-                TextField(
-                  controller: addressController,
-                  decoration: InputDecoration(
-                    labelText: 'Address',
-                    prefixIcon: Icon(Icons.location_on,
-                        color: const Color.fromARGB(255, 131, 57, 8)),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 20.0),
-                // Register Button with increased width
-                ElevatedButton(
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'Sign up to get started!',
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+              const SizedBox(height: 20),
+              // Username Field
+              _buildTextField(
+                controller: usernameController,
+                labelText: 'Username',
+                icon: Icons.person,
+              ),
+              const SizedBox(height: 10),
+              // Password Field
+              _buildTextField(
+                controller: passwordController,
+                labelText: 'Password',
+                icon: Icons.lock,
+                obscureText: true,
+              ),
+              const SizedBox(height: 10),
+              // Email Field
+              _buildTextField(
+                controller: emailController,
+                labelText: 'Email',
+                icon: Icons.email,
+              ),
+              const SizedBox(height: 10),
+              // Role Dropdown
+              _buildDropdownField(),
+              const SizedBox(height: 10),
+              // Contact Number Field
+              _buildTextField(
+                controller: contactNumberController,
+                labelText: 'Contact Number',
+                icon: Icons.phone,
+              ),
+              const SizedBox(height: 10),
+              // Address Field
+              _buildTextField(
+                controller: addressController,
+                labelText: 'Address',
+                icon: Icons.location_on,
+              ),
+              const SizedBox(height: 20),
+              // Register Button with animation
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInOut,
+                child: ElevatedButton(
                   onPressed: () async {
                     if (selectedUserRole == null) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Please select a user role')),
+                        const SnackBar(
+                            content: Text('Please select a user role')),
                       );
                       return;
                     }
-                    User user = User(
-                      username: usernameController.text,
-                      password: passwordController.text,
-                      email: emailController.text,
-                      userRole: selectedUserRole!,
-                      contactNumber: contactNumberController.text,
-                      address: addressController.text,
-                    );
+                    // User Registration Logic
                     try {
-                      await MongoDatabase.registerUser(user);
+                      // Simulate registration logic with a delay
+                      await Future.delayed(const Duration(seconds: 1));
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('User registered successfully')),
+                        const SnackBar(
+                            content: Text('User registered successfully!')),
                       );
-                      // Navigate to the login page after successful registration
                       Navigator.pushReplacementNamed(context, '/login');
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -224,38 +251,84 @@ class RegisterPage extends StatelessWidget {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor:
-                        Color.fromARGB(255, 131, 57, 8), // Background color
+                    backgroundColor: const Color(0xFF6B4F4F), // Purple shade
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 150,
-                        vertical: 15), // Increased button width and height
-                    animationDuration:
-                        Duration(milliseconds: 500), // Animation duration
-                    elevation: 5, // Elevation
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 50,
+                      vertical: 15,
+                    ),
                   ),
-                  child: Text('Register'),
-                ),
-                SizedBox(height: 10.0),
-                // Login Link
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pushReplacementNamed(context, '/login');
-                  },
                   child: const Text(
-                    'Already have an account? Login',
-                    style: TextStyle(
-                      color: Color.fromARGB(255, 131, 57, 8),
-                      decoration: TextDecoration.underline,
-                    ),
+                    'Register',
+                    style: TextStyle(fontSize: 18, color: Colors.white),
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 10),
+              // Already have an account? Login
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushReplacementNamed(context, '/login');
+                },
+                child: const Text(
+                  'Already have an account? Login',
+                  style: TextStyle(
+                    color: Color(0xFF6B4F4F),
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            ],
           ),
+        ),
+      ),
+    );
+  }
+
+  // Reusable TextField Widget
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String labelText,
+    required IconData icon,
+    bool obscureText = false,
+  }) {
+    return TextField(
+      controller: controller,
+      obscureText: obscureText,
+      decoration: InputDecoration(
+        labelText: labelText,
+        prefixIcon: Icon(icon, color: Color(0xFF6B4F4F)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+      ),
+    );
+  }
+
+  // Dropdown Field for User Role
+  Widget _buildDropdownField() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0xFF6A1B9A)),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: DropdownButtonFormField<String>(
+        value: selectedUserRole,
+        onChanged: (value) {
+          selectedUserRole = value;
+        },
+        items: ['Admin', 'Customer']
+            .map((role) => DropdownMenuItem(
+                  value: role,
+                  child: Text(role),
+                ))
+            .toList(),
+        decoration: const InputDecoration(
+          border: InputBorder.none,
+          labelText: 'User Role',
         ),
       ),
     );
@@ -270,115 +343,144 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 242, 248, 208), // Background color
-      body: Padding(
-        padding: EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center, // Center vertically
-          children: <Widget>[
-            // Sign In Title
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Color.fromARGB(255, 131, 57, 8), // Border color
-                  width: 2.0, // Border width
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              const SizedBox(height: 50.0), // Top margin
+
+              // Lottie Animation
+              Lottie.asset(
+                'assets/login_animation.json',
+                height: 200,
+                repeat: true,
+              ),
+              const SizedBox(height: 20.0),
+
+              // Sign In Title
+              _buildTitle(),
+              const SizedBox(height: 24.0),
+
+              // Username TextField
+              _buildTextField(
+                usernameController,
+                'Username',
+                Icons.person,
+              ),
+              const SizedBox(height: 20.0),
+
+              // Password TextField
+              _buildTextField(
+                passwordController,
+                'Password',
+                Icons.lock,
+                obscureText: true,
+              ),
+              const SizedBox(height: 20.0),
+
+              // Login Button
+              _buildLoginButton(context),
+              const SizedBox(height: 10.0),
+
+              // Register Button
+              TextButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/register');
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color.fromARGB(255, 131, 57, 8),
                 ),
-                borderRadius: BorderRadius.circular(10.0), // Border radius
+                child: const Text('Create an account'),
               ),
-              padding: const EdgeInsets.all(10.0), // Padding around the text
-              child: const Text(
-                'SIGNIN',
-                style: TextStyle(
-                  fontSize: 24.0,
-                  fontWeight: FontWeight.bold,
-                  color: Color.fromARGB(255, 131, 57, 8),
-                ),
-              ),
-            ),
-            SizedBox(height: 24.0),
-            // Username TextField
-            TextField(
-              controller: usernameController,
-              decoration: InputDecoration(
-                labelText: 'Username',
-                prefixIcon:
-                    Icon(Icons.person, color: Color.fromARGB(255, 131, 57, 8)),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-              ),
-            ),
-            SizedBox(height: 20.0),
-            // Password TextField
-            TextField(
-              controller: passwordController,
-              decoration: InputDecoration(
-                labelText: 'Password',
-                prefixIcon: Icon(Icons.lock,
-                    color: const Color.fromARGB(255, 131, 57, 8)),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-              ),
-              obscureText: true,
-            ),
-            SizedBox(height: 20.0),
-            // Login Button with animation and increased width
-            ElevatedButton(
-              onPressed: () async {
-                bool loggedIn = await MongoDatabase.loginUser(
-                  usernameController.text,
-                  passwordController.text,
-                );
-                if (loggedIn) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Login successful')),
-                  );
-                  // Retrieve user role from the database (You may need to implement this)
-                  String userRole =
-                      "admin"; // For example, retrieve user role from database
-                  // Navigate to different dashboards based on the user role
-                  if (userRole == "admin") {
-                    Navigator.pushNamed(context, '/admin_dashboard');
-                  } else if (userRole == "customer") {
-                    Navigator.pushNamed(context, '/home');
-                  } else {
-                    // Handle other user roles
-                  }
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Invalid username or password')),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor:
-                    Color.fromARGB(255, 131, 57, 8), // Background color
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 150,
-                    vertical: 15), // Increased button width and height
-                animationDuration:
-                    const Duration(milliseconds: 500), // Animation duration
-                elevation: 5, // Elevation
-              ),
-              child: const Text('Login'),
-            ),
-            const SizedBox(height: 10.0),
-            // Register Button
-            TextButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/register');
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: const Color.fromARGB(255, 131, 57, 8),
-              ),
-              child: const Text('Create an account'),
-            ),
-          ],
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTitle() {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Color(0xFF6B4F4F), width: 2.0),
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      padding: const EdgeInsets.all(10.0),
+      child: const Text(
+        'SIGN IN',
+        style: TextStyle(
+          fontSize: 28.0,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF6B4F4F),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(
+      TextEditingController controller, String labelText, IconData icon,
+      {bool obscureText = false}) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: labelText,
+        prefixIcon: Icon(icon, color: Color(0xFF6B4F4F)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+      ),
+      obscureText: obscureText,
+    );
+  }
+
+  Widget _buildLoginButton(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () async {
+        User? user = await MongoDatabase.loginUser(
+          usernameController.text,
+          passwordController.text,
+        );
+
+        if (user != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Login successful')),
+          );
+
+          // Navigate to the correct dashboard with user ID
+          if (user.userRole == "Admin") {
+            Navigator.pushReplacementNamed(
+              context,
+              '/admin_dashboard',
+              arguments: user,
+            );
+          } else if (user.userRole == "Customer") {
+            Navigator.pushReplacementNamed(
+              context,
+              '/home',
+              arguments: {'loggedInUser': usernameController.text},
+            );
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Invalid username or password')),
+          );
+        }
+      },
+      style: ElevatedButton.styleFrom(
+        foregroundColor: Colors.white,
+        backgroundColor: const Color(0xFF6B4F4F),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 120, vertical: 15),
+        animationDuration: const Duration(milliseconds: 500),
+        elevation: 5,
+      ),
+      child: const Text(
+        'Login',
+        style: TextStyle(fontSize: 18.0),
       ),
     );
   }
@@ -390,6 +492,7 @@ void main() {
     routes: {
       '/login': (context) => LoginPage(),
       '/register': (context) => RegisterPage(),
+      '/manage_users': (context) => ManageUsersPage(),
     },
   ));
 }

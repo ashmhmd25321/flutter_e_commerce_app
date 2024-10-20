@@ -1,15 +1,23 @@
+import 'package:ecommerce_app/admin/manage%20users/manage_users.dart';
+import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:page_transition/page_transition.dart';
+import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:ecommerce_app/admin/dashboard.dart';
 import 'package:ecommerce_app/admin/manage%20products/addProduct.dart';
 import 'package:ecommerce_app/admin/manage%20products/productManagement.dart';
-import 'package:flutter/material.dart';
-import 'package:page_transition/page_transition.dart';
-import 'package:animated_splash_screen/animated_splash_screen.dart';
+import 'package:ecommerce_app/admin/manage%20products/viewProducts.dart';
 import 'package:ecommerce_app/users/user.dart';
+import 'package:ecommerce_app/users/ViewOrderToUser.dart';
+import 'package:ecommerce_app/admin/manage orders/order_management.dart'; // Import Order Management
 import 'package:ecommerce_app/home.dart';
-import 'package:ecommerce_app/dbConfig/mongoDb.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase
+  await Firebase.initializeApp();
+
   runApp(MyApp());
 }
 
@@ -18,25 +26,78 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Color.fromARGB(255, 131, 57, 8)),
+        colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color.fromARGB(255, 131, 57, 8)),
         useMaterial3: true,
       ),
       initialRoute: '/',
-      routes: {
-        '/': (context) => AnimatedSplashScreen(
-          duration: 3000,
-          splash: Icons.sell_outlined,
-          splashTransition: SplashTransition.scaleTransition,
-          nextScreen: LoginPage(),
-          backgroundColor: const Color.fromARGB(255, 242, 248, 208),
-          pageTransitionType: PageTransitionType.fade,
-        ),
-        '/register': (context) => RegisterPage(),
-        '/admin_dashboard': (context) => AdminDashboard(),
-        '/home': (context) => MyHomePage(title: 'EzyBuy'),
-        '/login': (context) => LoginPage(),
-        '/manageProduct': (context) => ProductManagementPage(),
-        '/addProduct': (context) => AddProductPage(),
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/':
+            return MaterialPageRoute(
+              builder: (context) => AnimatedSplashScreen(
+                duration: 3000,
+                splash: Icons.sell_outlined,
+                splashTransition: SplashTransition.scaleTransition,
+                nextScreen: LoginPage(),
+                backgroundColor: const Color.fromARGB(255, 242, 248, 208),
+                pageTransitionType: PageTransitionType.fade,
+              ),
+            );
+
+          case '/home':
+            final args = settings.arguments as Map<String, dynamic>;
+            return MaterialPageRoute(
+              builder: (context) => CustomerHomePage(
+                title: 'EzyBuy',
+                loggedInUser: args['loggedInUser'],
+              ),
+            );
+
+          case '/register':
+            return MaterialPageRoute(builder: (context) => RegisterPage());
+
+          case '/admin_dashboard':
+            return MaterialPageRoute(
+                builder: (context) => const AdminDashboard());
+
+          case '/login':
+            return MaterialPageRoute(builder: (context) => LoginPage());
+
+          case '/manageProduct':
+            return MaterialPageRoute(
+                builder: (context) => const ProductManagementPage());
+
+          case '/addProduct':
+            return MaterialPageRoute(builder: (context) => AddProductPage());
+
+          case '/viewProduct':
+            return MaterialPageRoute(builder: (context) => ViewProductsPage());
+
+          case '/manageUsers':
+            return MaterialPageRoute(builder: (context) => ManageUsersPage());
+
+          case '/orders':
+            final args = settings.arguments as Map<String, dynamic>;
+            return MaterialPageRoute(
+              builder: (context) => ViewOrderToUser(
+                loggedInUser: args['loggedInUser'],
+              ),
+            );
+
+          case '/manageOrders':
+            return MaterialPageRoute(
+              builder: (context) => const OrderManagement(),
+            );
+
+          default:
+            return MaterialPageRoute(
+              builder: (context) => Scaffold(
+                appBar: AppBar(title: const Text('404 - Not Found')),
+                body: const Center(child: Text('Page not found')),
+              ),
+            );
+        }
       },
     );
   }

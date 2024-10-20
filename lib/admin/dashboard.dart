@@ -9,157 +9,137 @@ class AdminDashboard extends StatefulWidget {
 }
 
 class _AdminDashboardState extends State<AdminDashboard> {
-  int _adminCounter = 0;
-
-  void _incrementAdminCounter() {
-    setState(() {
-      _adminCounter++;
-    });
+  void _logout() {
+    // Add your logout logic here
+    Navigator.pushReplacementNamed(
+        context, '/login'); // Adjust the route as necessary
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false, // Removes back button
+        automaticallyImplyLeading: false,
         title: Container(
           decoration: BoxDecoration(
-            border: Border.all(
-              color: Color.fromARGB(255, 131, 57, 8), // Border color
-              width: 2.0, // Border width
-            ),
-            borderRadius: BorderRadius.circular(10.0), // Border radius
+            border: Border.all(color: const Color(0xFF6B4F4F), width: 2.0),
+            borderRadius: BorderRadius.circular(10.0),
           ),
-          padding: EdgeInsets.all(8.0), // Padding around the text
+          padding: const EdgeInsets.all(8.0),
           child: const Text(
             'Admin Dashboard',
             style: TextStyle(
-              color: Color.fromARGB(255, 131, 57, 8), // Text color
-              fontWeight: FontWeight.bold, // Make the text bold
+              color: Color(0xFF6B4F4F),
+              fontWeight: FontWeight.bold,
+              fontSize: 24,
             ),
           ),
         ),
-        backgroundColor: Color.fromARGB(255, 242, 248, 208), // Background color
+        backgroundColor: const Color(0xFFF2F8D0),
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: _logout,
+            tooltip: 'Logout',
+          ),
+        ],
       ),
       body: Container(
-        color: Color.fromARGB(255, 242, 248, 208),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              const Color(0xFFF2F8D0).withOpacity(0.9),
+              const Color(0xFFE6EBB2).withOpacity(0.9),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(
+            const Text(
               'Sales Overview',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Container(
-              height: 200, // Adjust the height as needed
+              height: 220, // Increased height for better visibility
               width: double.infinity,
               decoration: BoxDecoration(
-                color: Color.fromARGB(255, 131, 57, 8),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: SalesOverviewChart(), // Display the sales overview chart
-            ),
-            SizedBox(height: 20),
-            Center(
-              child: Text(
-                'Product Management',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-            ),
-            SizedBox(height: 10),
-            Center(
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/manageProduct');
-                },
-                icon: Icon(Icons.shopping_bag),
-                label: Text('Manage Products'),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor:
-                      Color.fromARGB(255, 131, 57, 8), // Button text color
-                  shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(15.0), // Make it more rectangular
-                    side: BorderSide(
-                      color: Color.fromARGB(255, 131, 57, 8), // Border color
-                      width: 2.0, // Border width
-                    ),
+                color: const Color(0xFF6B4F4F),
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.grey,
+                    blurRadius: 8.0,
+                    spreadRadius: 1.0,
+                    offset: Offset(0, 3),
                   ),
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 30.0, // Increase horizontal padding
-                    vertical: 20.0, // Increase vertical padding
-                  ),
+                ],
+              ),
+              child: SalesOverviewChart(),
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              // Allow section to fill available space
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    _buildManagementSection('Product Management',
+                        Icons.shopping_bag, '/manageProduct'),
+                    _buildManagementSection('Order Management',
+                        Icons.shopping_cart, '/manageOrders'),
+                    _buildManagementSection(
+                        'User Management', Icons.person, '/manageUsers'),
+                  ],
                 ),
               ),
             ),
-            SizedBox(height: 20),
-            Center(
-              child: Text(
-                'Order Management',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildManagementSection(String title, IconData icon, String route) {
+    return Card(
+      elevation: 6,
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Center(
               child: ElevatedButton.icon(
                 onPressed: () {
-                  // Navigate to order management page
+                  Navigator.pushNamed(context, route);
                 },
-                icon: Icon(Icons.shopping_cart),
-                label: Text('Manage Orders'),
+                icon: Icon(icon),
+                label: const Text('Manage'),
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,
-                  backgroundColor:
-                      Color.fromARGB(255, 131, 57, 8), // Button text color
+                  backgroundColor: const Color(0xFF6B4F4F),
                   shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(15.0), // Make it more rectangular
-                    side: BorderSide(
-                      color: Color.fromARGB(255, 131, 57, 8), // Border color
-                      width: 2.0, // Border width
+                    borderRadius: BorderRadius.circular(15.0),
+                    side: const BorderSide(
+                      color: Color(0xFF6B4F4F),
+                      width: 2.0,
                     ),
                   ),
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 30.0, // Increase horizontal padding
-                    vertical: 20.0, // Increase vertical padding
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 20),
-            Center(
-              child: Text(
-                'User Management',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-            ),
-            SizedBox(height: 10),
-            Center(
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  // Navigate to user management page
-                },
-                icon: Icon(Icons.person),
-                label: Text('Manage Users'),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor:
-                      Color.fromARGB(255, 131, 57, 8), // Button text color
-                  shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(15.0), // Make it more rectangular
-                    side: BorderSide(
-                      color: Color.fromARGB(255, 131, 57, 8), // Border color
-                      width: 2.0, // Border width
-                    ),
-                  ),
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 30.0, // Increase horizontal padding
-                    vertical: 20.0, // Increase vertical padding
-                  ),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 30.0, vertical: 20.0),
                 ),
               ),
             ),

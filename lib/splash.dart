@@ -17,9 +17,17 @@ class _SplashState extends State<Splash> {
     // _navigatetohome();
   }
 
-  _navigatetohome()async {
-    await Future.delayed(Duration(milliseconds: 1500), () {});
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>const MyHomePage(title: 'EzyBuy',)));
+  _navigatetohome(String loggedInUser) async {
+    await Future.delayed(const Duration(milliseconds: 1500), () {});
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CustomerHomePage(
+          title: 'EzyBuy',
+          loggedInUser: loggedInUser, // Pass the logged in user here
+        ),
+      ),
+    );
   }
 
   @override
@@ -30,13 +38,14 @@ class _SplashState extends State<Splash> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              height: 100, 
-              width: 100, 
-              color: Colors.blue,),
-            const Text('Splash Screen', style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold
-            ),),
+              height: 100,
+              width: 100,
+              color: Colors.blue,
+            ),
+            const Text(
+              'Splash Screen',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
           ],
         ),
       ),
