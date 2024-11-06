@@ -16,6 +16,8 @@ class Product {
   final bool inStock;
   final String contactNumber;
   final String location;
+  final String category;
+  final String subcategory;
 
   Product({
     required this.id,
@@ -26,6 +28,8 @@ class Product {
     required this.inStock,
     required this.contactNumber,
     required this.location,
+    required this.category,
+    required this.subcategory,
   });
 
   Map<String, dynamic> toMap() {
@@ -38,6 +42,8 @@ class Product {
       'inStock': inStock,
       'contactNumber': contactNumber,
       'location': location,
+      'category': category,
+      'subcategory': subcategory,
     };
   }
 }
@@ -78,6 +84,8 @@ class _AddProductPageState extends State<AddProductPage> {
   final TextEditingController productPriceController = TextEditingController();
   final TextEditingController contactNumberController = TextEditingController();
   String? selectedDistrict;
+  String? selectedCategory;
+  String? selectedSubcategory;
   String? _imagePath;
   bool _isLoading = false;
   bool _inStock = false;
@@ -109,6 +117,77 @@ class _AddProductPageState extends State<AddProductPage> {
     'Trincomalee',
     'Vavuniya'
   ];
+
+  final List<String> categories = [
+    'Electronics',
+    'Fashion',
+    'Groceries',
+    'Home & Kitchen',
+    'Health & Beauty',
+    'Sports & Outdoors',
+    'Toys & Games',
+    'Automotive',
+    'Books & Media'
+  ];
+
+  final Map<String, List<String>> subcategories = {
+    'Electronics': [
+      'Mobile Phones',
+      'Laptops',
+      'Cameras',
+      'Televisions',
+      'Wearable Tech'
+    ],
+    'Fashion': ['Men', 'Women', 'Kids', 'Footwear', 'Accessories'],
+    'Groceries': [
+      'Vegetables',
+      'Fruits',
+      'Beverages',
+      'Snacks',
+      'Dairy Products'
+    ],
+    'Home & Kitchen': [
+      'Furniture',
+      'Kitchen Appliances',
+      'Home Decor',
+      'Storage',
+      'Cleaning Supplies'
+    ],
+    'Health & Beauty': [
+      'Skincare',
+      'Makeup',
+      'Hair Care',
+      'Personal Care',
+      'Health Supplements'
+    ],
+    'Sports & Outdoors': [
+      'Fitness Equipment',
+      'Outdoor Gear',
+      'Sportswear',
+      'Camping & Hiking',
+      'Cycling'
+    ],
+    'Toys & Games': [
+      'Educational Toys',
+      'Board Games',
+      'Action Figures',
+      'Puzzles',
+      'Dolls'
+    ],
+    'Automotive': [
+      'Car Accessories',
+      'Motorbike Accessories',
+      'Tools & Equipment',
+      'Car Electronics'
+    ],
+    'Books & Media': [
+      'Books',
+      'Magazines',
+      'Music',
+      'Movies & TV Shows',
+      'Video Games'
+    ]
+  };
 
   Future<void> _initializeFirebase() async {
     await Firebase.initializeApp();
@@ -155,6 +234,8 @@ class _AddProductPageState extends State<AddProductPage> {
         price > 0 &&
         contactNumber.isNotEmpty &&
         selectedDistrict != null &&
+        selectedCategory != null &&
+        selectedSubcategory != null &&
         _imagePath != null) {
       setState(() {
         _isLoading = true;
@@ -177,6 +258,8 @@ class _AddProductPageState extends State<AddProductPage> {
             inStock: _inStock,
             contactNumber: contactNumber,
             location: selectedDistrict!,
+            category: selectedCategory!,
+            subcategory: selectedSubcategory!,
           );
           await MongoDatabase.addProduct(product);
 
@@ -191,6 +274,8 @@ class _AddProductPageState extends State<AddProductPage> {
           setState(() {
             _imagePath = null;
             selectedDistrict = null;
+            selectedCategory = null;
+            selectedSubcategory = null;
             _inStock = false;
           });
         } else {
@@ -219,7 +304,7 @@ class _AddProductPageState extends State<AddProductPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Product'),
-        backgroundColor: const Color(0xFF6B4F4F), // AppBar color
+        backgroundColor: const Color(0xFF6B4F4F),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -245,6 +330,10 @@ class _AddProductPageState extends State<AddProductPage> {
                       keyboardType: TextInputType.phone),
                   const SizedBox(height: 20),
                   _buildDistrictDropdown(),
+                  const SizedBox(height: 20),
+                  _buildCategoryDropdown(),
+                  const SizedBox(height: 20),
+                  _buildSubcategoryDropdown(),
                   const SizedBox(height: 20),
                   CheckboxListTile(
                     title: const Text('In Stock'),
@@ -285,42 +374,13 @@ class _AddProductPageState extends State<AddProductPage> {
                   const SizedBox(height: 20),
                   ElevatedButton.icon(
                     onPressed: _getImageFromGallery,
-                    icon:
-                        const Icon(Icons.image, color: Colors.white, size: 18),
-                    label: const Text('Choose Image'),
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor:
-                          const Color.fromARGB(255, 131, 57, 8), // Button color
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 10, horizontal: 16),
-                      textStyle: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w500),
-                      elevation: 4,
-                      minimumSize: const Size(140, 40),
-                    ),
+                    icon: const Icon(Icons.image),
+                    label: const Text('Select Image'),
                   ),
                   const SizedBox(height: 20),
-                  ElevatedButton.icon(
+                  ElevatedButton(
                     onPressed: _saveProductToDatabase,
-                    icon: const Icon(Icons.add_shopping_cart,
-                        color: Colors.white),
-                    label: const Text('Add Product'),
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: Colors.green, // Button color
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 15, horizontal: 30),
-                      textStyle: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
-                      elevation: 8,
-                    ),
+                    child: const Text('Save Product'),
                   ),
                 ],
               ),
@@ -328,47 +388,60 @@ class _AddProductPageState extends State<AddProductPage> {
     );
   }
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    TextInputType keyboardType = TextInputType.text,
-  }) {
-    return Card(
-      elevation: 4,
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-        ),
-        keyboardType: keyboardType,
-      ),
+  Widget _buildTextField(
+      {required TextEditingController controller,
+      required String label,
+      TextInputType keyboardType = TextInputType.text}) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(labelText: label),
+      keyboardType: keyboardType,
     );
   }
 
   Widget _buildDistrictDropdown() {
-    return Card(
-      elevation: 4,
-      child: DropdownButtonFormField<String>(
-        value: selectedDistrict,
-        onChanged: (value) {
-          setState(() {
-            selectedDistrict = value;
-          });
-        },
-        items: districts.map((district) {
-          return DropdownMenuItem(
-            value: district,
-            child: Text(district),
-          );
-        }).toList(),
-        decoration: const InputDecoration(
-          labelText: 'Select District',
-          border: OutlineInputBorder(),
-          contentPadding: EdgeInsets.symmetric(horizontal: 10),
-        ),
-      ),
+    return DropdownButtonFormField<String>(
+      value: selectedDistrict,
+      onChanged: (value) {
+        setState(() {
+          selectedDistrict = value;
+        });
+      },
+      items: districts.map((district) {
+        return DropdownMenuItem(value: district, child: Text(district));
+      }).toList(),
+      decoration: InputDecoration(labelText: 'Select District'),
+    );
+  }
+
+  Widget _buildCategoryDropdown() {
+    return DropdownButtonFormField<String>(
+      value: selectedCategory,
+      onChanged: (value) {
+        setState(() {
+          selectedCategory = value;
+          selectedSubcategory = null; // Reset subcategory when category changes
+        });
+      },
+      items: categories.map((category) {
+        return DropdownMenuItem(value: category, child: Text(category));
+      }).toList(),
+      decoration: InputDecoration(labelText: 'Select Category'),
+    );
+  }
+
+  Widget _buildSubcategoryDropdown() {
+    return DropdownButtonFormField<String>(
+      value: selectedSubcategory,
+      onChanged: (value) {
+        setState(() {
+          selectedSubcategory = value;
+        });
+      },
+      items: (subcategories[selectedCategory] ?? []).map((subcategory) {
+        return DropdownMenuItem(value: subcategory, child: Text(subcategory));
+      }).toList(),
+      decoration: const InputDecoration(labelText: 'Select Subcategory'),
     );
   }
 }

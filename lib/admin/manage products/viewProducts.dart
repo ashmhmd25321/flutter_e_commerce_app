@@ -11,6 +11,8 @@ class Product {
   final bool inStock;
   final String location;
   final String contactNumber;
+  final String category; // New field for category
+  final String subcategory; // New field for subcategory
 
   Product({
     required this.id,
@@ -21,6 +23,8 @@ class Product {
     required this.inStock,
     required this.location,
     required this.contactNumber,
+    required this.category,
+    required this.subcategory,
   });
 
   factory Product.fromMap(Map<String, dynamic> map) {
@@ -33,6 +37,9 @@ class Product {
       inStock: map['inStock'] ?? false,
       location: map['location'] ?? 'Unknown Location',
       contactNumber: map['contactNumber'] ?? 'No Contact Info',
+      category: map['category'] ?? 'No Category', // Extract category
+      subcategory:
+          map['subcategory'] ?? 'No Subcategory', // Extract subcategory
     );
   }
 }
@@ -242,6 +249,20 @@ class _ViewProductsPageState extends State<ViewProductsPage> {
                               ),
                               const SizedBox(height: 4),
                               Text(
+                                'Category: ${product.category}', // Display category
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Subcategory: ${product.subcategory}', // Display subcategory
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
                                 'Location: ${product.location}',
                                 style: const TextStyle(
                                   color: Colors.grey,
@@ -294,11 +315,9 @@ class _ViewProductsPageState extends State<ViewProductsPage> {
         return AlertDialog(
           title: const Text('Delete Product'),
           content: const Text('Are you sure you want to delete this product?'),
-          actions: <Widget>[
+          actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text('Cancel'),
             ),
             TextButton(

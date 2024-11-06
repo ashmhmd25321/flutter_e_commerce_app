@@ -38,9 +38,13 @@ class SalesOverviewChart extends StatelessWidget {
               data: data,
               domainFn: (SalesData sales, _) => sales.month,
               measureFn: (SalesData sales, _) => sales.amount,
-              colorFn: (_, __) => charts.ColorUtil.fromDartColor(
-                  const Color.fromARGB(
-                      255, 192, 195, 197)), // Use blue for bars
+              colorFn: (SalesData sales, _) {
+                // Example: Choose colors based on the month
+                switch (sales.month) {
+                  default:
+                    return charts.ColorUtil.fromDartColor(Colors.grey);
+                }
+              },
               labelAccessorFn: (SalesData sales, _) => '${sales.amount}',
             ),
           ];
@@ -52,7 +56,7 @@ class SalesOverviewChart extends StatelessWidget {
           );
 
           return Container(
-            height: 200, // Adjust the height as needed
+            height: 220, // Adjust the height as needed
             padding: const EdgeInsets.all(10),
             child: chart,
           );

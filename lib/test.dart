@@ -270,8 +270,10 @@ class _CustomerHomePageState extends State<CustomerHomePage>
                           itemCount: products.length,
                           itemBuilder: (context, index) {
                             final product = products[index];
-                            return FadeInAnimation(
-                              index: index,
+                            return AnimatedOpacity(
+                              opacity: 1.0, // Set to 1.0 for fully visible
+                              duration: const Duration(
+                                  milliseconds: 500), // Animation duration
                               child: GestureDetector(
                                 onTap: () {
                                   showDialog(
@@ -310,70 +312,27 @@ class _CustomerHomePageState extends State<CustomerHomePage>
                                             },
                                             errorBuilder: (context, error, _) =>
                                                 const Icon(Icons.error,
-                                                    size: 100.0),
+                                                    size: 50),
                                           ),
                                         ),
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.stretch,
-                                          children: [
-                                            Text(
-                                              product.name,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16.0,
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                            const SizedBox(height: 5),
-                                            Text(
-                                              '${product.category} > ${product.subcategory}', // Display category and subcategory
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                color: Colors.grey,
-                                                fontSize: 14.0,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 5),
-                                            Text(
-                                              product.location,
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                  color: Colors.grey),
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.all(5.0),
-                                              child: Text(
-                                                product.inStock
-                                                    ? 'In Stock'
-                                                    : 'Out of Stock',
-                                                style: TextStyle(
-                                                  color: product.inStock
-                                                      ? Colors.green
-                                                      : Colors.red,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.all(5.0),
-                                              child: Text(
-                                                'LKR ${product.price.toStringAsFixed(2)}',
-                                                style: const TextStyle(
-                                                  color: Color(0xFF3A3A3A),
-                                                  fontSize: 16.0,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            ),
-                                          ],
+                                        child: Text(
+                                          product.name,
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(
+                                          '\$${product.price}',
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.green),
                                         ),
                                       ),
                                     ],
@@ -404,26 +363,6 @@ class _CustomerHomePageState extends State<CustomerHomePage>
         },
         child: const Icon(Icons.shopping_cart),
       ),
-    );
-  }
-}
-
-class FadeInAnimation extends StatelessWidget {
-  final int index;
-  final Widget child;
-
-  const FadeInAnimation({
-    Key? key,
-    required this.index,
-    required this.child,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedOpacity(
-      opacity: 1.0,
-      duration: Duration(milliseconds: 300 + index * 100),
-      child: child,
     );
   }
 }

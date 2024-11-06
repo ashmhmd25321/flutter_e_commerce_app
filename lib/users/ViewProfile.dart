@@ -173,12 +173,9 @@ class _ViewProfileState extends State<ViewProfile> {
         backgroundColor: const Color(0xFF6B4F4F),
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              const Color(0xFF6B4F4F),
-              const Color.fromARGB(255, 228, 220, 213)
-            ],
+            colors: [Color(0xFF6B4F4F), Color.fromARGB(255, 228, 220, 213)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
