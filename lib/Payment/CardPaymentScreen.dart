@@ -8,6 +8,7 @@ class CardPaymentScreen extends StatefulWidget {
   final double productPrice;
   final String imageUrl;
   final String loggedInUser;
+  final String sellerName; // Add sellerName parameter
 
   const CardPaymentScreen({
     super.key,
@@ -15,6 +16,7 @@ class CardPaymentScreen extends StatefulWidget {
     required this.productPrice,
     required this.imageUrl,
     required this.loggedInUser,
+    required this.sellerName, // Initialize sellerName
   });
 
   @override
@@ -128,6 +130,12 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: Colors.deepOrange),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Seller: ${widget.sellerName}', // Display seller name
+                          style: const TextStyle(
+                              fontSize: 18, color: Colors.black54),
                         ),
                       ],
                     ),
@@ -346,9 +354,11 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
           productName: widget.productName,
           price: totalAmount,
           username: _usernameController.text,
-          orderedDate: DateTime.now(), // Add the current date
+          orderedDate: DateTime.now(),
           shippingAddress: _shippingAddressController.text,
-          imageUrl: widget.imageUrl, orderStatus: 'Pending',
+          imageUrl: widget.imageUrl,
+          orderStatus: 'Pending',
+          sellerName: widget.sellerName,
         );
 
         // Save the order to the database

@@ -11,8 +11,9 @@ class Product {
   final bool inStock;
   final String location;
   final String contactNumber;
-  final String category; // New field for category
-  final String subcategory; // New field for subcategory
+  final String category;
+  final String subcategory;
+  final String sellerName; // New field for seller name
 
   Product({
     required this.id,
@@ -25,6 +26,7 @@ class Product {
     required this.contactNumber,
     required this.category,
     required this.subcategory,
+    required this.sellerName, // Initialize seller name
   });
 
   factory Product.fromMap(Map<String, dynamic> map) {
@@ -37,9 +39,9 @@ class Product {
       inStock: map['inStock'] ?? false,
       location: map['location'] ?? 'Unknown Location',
       contactNumber: map['contactNumber'] ?? 'No Contact Info',
-      category: map['category'] ?? 'No Category', // Extract category
-      subcategory:
-          map['subcategory'] ?? 'No Subcategory', // Extract subcategory
+      category: map['category'] ?? 'No Category',
+      subcategory: map['subcategory'] ?? 'No Subcategory',
+      sellerName: map['sellerName'] ?? 'Unknown Seller', // Retrieve seller name
     );
   }
 }
@@ -139,13 +141,13 @@ class _ViewProductsPageState extends State<ViewProductsPage> {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.of(context).pop(true); // In Stock
+                      Navigator.of(context).pop(true);
                     },
                     child: const Text('Yes'),
                   ),
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.of(context).pop(false); // Out of Stock
+                      Navigator.of(context).pop(false);
                     },
                     child: const Text('No'),
                   ),
@@ -159,7 +161,7 @@ class _ViewProductsPageState extends State<ViewProductsPage> {
 
     if (newStock != null && newStock != product.inStock) {
       await MongoDatabase.updateProductStock(product.p_id, newStock);
-      setState(() {}); // Refresh the list
+      setState(() {});
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Product stock updated successfully')),
       );
@@ -249,14 +251,14 @@ class _ViewProductsPageState extends State<ViewProductsPage> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Category: ${product.category}', // Display category
+                                'Category: ${product.category}',
                                 style: const TextStyle(
                                   color: Colors.grey,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Subcategory: ${product.subcategory}', // Display subcategory
+                                'Subcategory: ${product.subcategory}',
                                 style: const TextStyle(
                                   color: Colors.grey,
                                 ),
@@ -264,6 +266,13 @@ class _ViewProductsPageState extends State<ViewProductsPage> {
                               const SizedBox(height: 4),
                               Text(
                                 'Location: ${product.location}',
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Seller: ${product.sellerName}', // Display seller name
                                 style: const TextStyle(
                                   color: Colors.grey,
                                 ),
@@ -317,13 +326,15 @@ class _ViewProductsPageState extends State<ViewProductsPage> {
           content: const Text('Are you sure you want to delete this product?'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(context).pop();
-                _deleteProduct(pId);
+                await _deleteProduct(pId);
               },
               child: const Text('Delete'),
             ),

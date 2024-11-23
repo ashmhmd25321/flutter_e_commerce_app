@@ -18,6 +18,7 @@ class Product {
   final String location;
   final String category;
   final String subcategory;
+  final String sellerName; // New field
 
   Product({
     required this.id,
@@ -30,6 +31,7 @@ class Product {
     required this.location,
     required this.category,
     required this.subcategory,
+    required this.sellerName, // Initialize sellerName
   });
 
   Map<String, dynamic> toMap() {
@@ -44,6 +46,7 @@ class Product {
       'location': location,
       'category': category,
       'subcategory': subcategory,
+      'sellerName': sellerName, // Map sellerName
     };
   }
 }
@@ -83,6 +86,8 @@ class _AddProductPageState extends State<AddProductPage> {
   final TextEditingController productNameController = TextEditingController();
   final TextEditingController productPriceController = TextEditingController();
   final TextEditingController contactNumberController = TextEditingController();
+  final TextEditingController sellerNameController =
+      TextEditingController(); // New controller
   String? selectedDistrict;
   String? selectedCategory;
   String? selectedSubcategory;
@@ -228,6 +233,7 @@ class _AddProductPageState extends State<AddProductPage> {
     final name = productNameController.text;
     final price = double.tryParse(productPriceController.text) ?? 0.0;
     final contactNumber = contactNumberController.text;
+    final sellerName = sellerNameController.text; // Get seller name
 
     if (p_id.isNotEmpty &&
         name.isNotEmpty &&
@@ -236,7 +242,9 @@ class _AddProductPageState extends State<AddProductPage> {
         selectedDistrict != null &&
         selectedCategory != null &&
         selectedSubcategory != null &&
-        _imagePath != null) {
+        _imagePath != null &&
+        sellerName.isNotEmpty) {
+      // Validate seller name
       setState(() {
         _isLoading = true;
       });
@@ -260,6 +268,7 @@ class _AddProductPageState extends State<AddProductPage> {
             location: selectedDistrict!,
             category: selectedCategory!,
             subcategory: selectedSubcategory!,
+            sellerName: sellerName, // Pass seller name
           );
           await MongoDatabase.addProduct(product);
 
@@ -271,6 +280,7 @@ class _AddProductPageState extends State<AddProductPage> {
           productNameController.clear();
           productPriceController.clear();
           contactNumberController.clear();
+          sellerNameController.clear(); // Clear seller name field
           setState(() {
             _imagePath = null;
             selectedDistrict = null;
@@ -328,6 +338,10 @@ class _AddProductPageState extends State<AddProductPage> {
                       controller: contactNumberController,
                       label: 'Seller Contact Number',
                       keyboardType: TextInputType.phone),
+                  const SizedBox(height: 20),
+                  _buildTextField(
+                      controller: sellerNameController,
+                      label: 'Seller Name'), // Seller name field
                   const SizedBox(height: 20),
                   _buildDistrictDropdown(),
                   const SizedBox(height: 20),

@@ -17,7 +17,7 @@ class _SplashState extends State<Splash> {
     // _navigatetohome();
   }
 
-  _navigatetohome(String loggedInUser) async {
+  _navigatetohome(String loggedInUser, String userRole) async {
     await Future.delayed(const Duration(milliseconds: 1500), () {});
     Navigator.pushReplacement(
       context,
@@ -25,6 +25,7 @@ class _SplashState extends State<Splash> {
         builder: (context) => CustomerHomePage(
           title: 'EzyBuy',
           loggedInUser: loggedInUser, // Pass the logged in user here
+          userRole: userRole, // Pass the userRole here
         ),
       ),
     );

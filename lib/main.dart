@@ -9,7 +9,7 @@ import 'package:ecommerce_app/admin/manage%20products/productManagement.dart';
 import 'package:ecommerce_app/admin/manage%20products/viewProducts.dart';
 import 'package:ecommerce_app/users/user.dart';
 import 'package:ecommerce_app/users/ViewOrderToUser.dart';
-import 'package:ecommerce_app/admin/manage orders/order_management.dart'; // Import Order Management
+import 'package:ecommerce_app/admin/manage orders/order_management.dart';
 import 'package:ecommerce_app/home.dart';
 
 void main() async {
@@ -51,6 +51,7 @@ class MyApp extends StatelessWidget {
               builder: (context) => CustomerHomePage(
                 title: 'EzyBuy',
                 loggedInUser: args['loggedInUser'],
+                userRole: args['userRole'],
               ),
             );
 
@@ -58,8 +59,13 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(builder: (context) => RegisterPage());
 
           case '/admin_dashboard':
+            final args = settings.arguments as Map<String, dynamic>;
             return MaterialPageRoute(
-                builder: (context) => const AdminDashboard());
+                builder: (context) => AdminDashboard(
+                      title: 'EzyBuy',
+                      loggedInUser: args['loggedInUser'],
+                      userRole: args['userRole'],
+                    ));
 
           case '/login':
             return MaterialPageRoute(builder: (context) => LoginPage());
@@ -86,8 +92,13 @@ class MyApp extends StatelessWidget {
             );
 
           case '/manageOrders':
+            // Get the loggedInUser from the route arguments
+            final args = settings.arguments as Map<String, dynamic>;
+
             return MaterialPageRoute(
-              builder: (context) => const OrderManagement(),
+              builder: (context) => OrderManagement(
+                loggedInUser: args['loggedInUser'],
+              ), // Pass the loggedInUser
             );
 
           default:

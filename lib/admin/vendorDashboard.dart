@@ -1,27 +1,19 @@
-import 'package:ecommerce_app/admin/salesCharts.dart';
 import 'package:flutter/material.dart';
 
-class AdminDashboard extends StatefulWidget {
-  const AdminDashboard({
-    super.key,
-    required this.title,
-    required this.loggedInUser,
-    required this.userRole,
-  });
-
-  final String title;
+class VendorDashboard extends StatefulWidget {
   final String loggedInUser;
-  final String userRole;
+
+  const VendorDashboard({Key? key, required this.loggedInUser})
+      : super(key: key);
 
   @override
-  State<AdminDashboard> createState() => _AdminDashboardState();
+  State<VendorDashboard> createState() => _VendorDashboardState();
 }
 
-class _AdminDashboardState extends State<AdminDashboard> {
+class _VendorDashboardState extends State<VendorDashboard> {
+  // Logout method
   void _logout() {
-    // Add your logout logic here
-    Navigator.pushReplacementNamed(
-        context, '/login'); // Adjust the route as necessary
+    Navigator.pushReplacementNamed(context, '/login');
   }
 
   // Go to Homepage method with arguments
@@ -31,7 +23,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       '/home',
       arguments: {
         'loggedInUser': widget.loggedInUser, // Pass the logged in user
-        'userRole': 'Admin', // Or pass the actual role here if needed
+        'userRole': 'Vendor', // Or pass the actual role here if needed
       },
     );
   }
@@ -41,20 +33,32 @@ class _AdminDashboardState extends State<AdminDashboard> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: const Color(0xFF6B4F4F), width: 2.0),
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-          padding: const EdgeInsets.all(8.0),
-          child: Text(
-            'Admin Dashboard - ${widget.loggedInUser}', // Removed 'const' here
-            style: const TextStyle(
-              color: Color(0xFF6B4F4F),
-              fontWeight: FontWeight.bold,
-              fontSize: 24,
+        title: Row(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: const Color(0xFF6B4F4F), width: 2.0),
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              padding: const EdgeInsets.all(8.0),
+              child: const Text(
+                'Vendor Dashboard',
+                style: TextStyle(
+                  color: Color(0xFF6B4F4F),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24,
+                ),
+              ),
             ),
-          ),
+            const Spacer(),
+            Text(
+              'Hi, ${widget.loggedInUser}', // Display the username here
+              style: const TextStyle(
+                color: Color(0xFF6B4F4F),
+                fontSize: 18,
+              ),
+            ),
+          ],
         ),
         backgroundColor: const Color(0xFFF2F8D0),
         actions: <Widget>[
@@ -81,50 +85,25 @@ class _AdminDashboardState extends State<AdminDashboard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             const Text(
-              'Sales Overview',
+              'Vendor Overview',
               style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
-            Container(
-              height: 220, // Increased height for better visibility
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: const Color(0xFF6B4F4F),
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.grey,
-                    blurRadius: 8.0,
-                    spreadRadius: 1.0,
-                    offset: Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: SalesOverviewChart(),
-            ),
-            const SizedBox(height: 20),
             Expanded(
-              // Allow section to fill available space
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     _buildManagementSection(
-                      'Product Management',
+                      'Manage Products',
                       Icons.shopping_bag,
-                      '/manageProduct',
+                      '/manageProducts',
                       widget.loggedInUser,
                     ),
                     _buildManagementSection(
                       'Manage Orders',
                       Icons.shopping_cart,
                       '/manageOrders',
-                      widget.loggedInUser,
-                    ),
-                    _buildManagementSection(
-                      'User Management',
-                      Icons.person,
-                      '/manageUsers',
                       widget.loggedInUser,
                     ),
                     const SizedBox(height: 20),
@@ -158,6 +137,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
+  // Management Section Widget
   Widget _buildManagementSection(
       String title, IconData icon, String route, String username) {
     return Card(

@@ -43,6 +43,7 @@ class _ViewOrderToUserState extends State<ViewOrderToUser> {
               shippingAddress: order['shipping_address'],
               imageUrl: order['image_url'],
               orderStatus: order['order_status'],
+              sellerName: order['seller_name'], // Retrieve seller name
             ))
         .toList();
   }
@@ -85,8 +86,8 @@ class _ViewOrderToUserState extends State<ViewOrderToUser> {
                           borderRadius: BorderRadius.circular(10),
                           child: Image.network(
                             order.imageUrl,
-                            width: 70, // Adjusted width for better layout
-                            height: 70, // Adjusted height for better layout
+                            width: 70,
+                            height: 70,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return const Icon(Icons.error, size: 70);
@@ -103,6 +104,13 @@ class _ViewOrderToUserState extends State<ViewOrderToUser> {
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Seller: ${order.sellerName}', // Display seller name
+                                style: const TextStyle(
+                                  color: Colors.black54,
                                 ),
                               ),
                               const SizedBox(height: 4),

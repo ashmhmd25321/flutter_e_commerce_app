@@ -126,6 +126,8 @@ class ProductDetailsDialog extends StatelessWidget {
                           productPrice: product.price,
                           imageUrl: product.imageUrl,
                           loggedInUser: loggedInUser,
+                          sellerName:
+                              product.sellerName, // Pass sellerName here
                         ),
                       ),
                     );

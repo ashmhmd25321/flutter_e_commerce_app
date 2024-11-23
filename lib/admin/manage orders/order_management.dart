@@ -5,7 +5,10 @@ import 'package:intl/intl.dart';
 import 'package:mongo_dart/mongo_dart.dart' as mongo;
 
 class OrderManagement extends StatefulWidget {
-  const OrderManagement({Key? key}) : super(key: key);
+  final String loggedInUser;
+
+  const OrderManagement({Key? key, required this.loggedInUser})
+      : super(key: key);
 
   @override
   State<OrderManagement> createState() => _OrderManagementState();
@@ -17,14 +20,31 @@ class _OrderManagementState extends State<OrderManagement> {
   @override
   void initState() {
     super.initState();
-    _ordersFuture = _fetchAllOrders();
+    _ordersFuture = _fetchAllOrders(widget.loggedInUser);
   }
 
-  Future<List<Map<String, dynamic>>> _fetchAllOrders() async {
+  Future<List<Map<String, dynamic>>> _fetchAllOrders(String username) async {
     final db = await mongo.Db.create(MONGO_URL);
     await db.open();
-    final collection = db.collection(MongoOrderDatabase.collectionName);
-    final ordersData = await collection.find().toList();
+
+    // Get user role based on loggedInUser
+    final usersCollection = db.collection('users');
+    final user = await usersCollection
+        .findOne(mongo.where.eq('username', widget.loggedInUser));
+    final userRole = user?['role'] ?? 'Vendor';
+
+    final ordersCollection = db.collection(MongoOrderDatabase.collectionName);
+
+    // Fetch orders based on user role
+    List<Map<String, dynamic>> ordersData;
+    if (widget.loggedInUser == 'Admin') {
+      ordersData = await ordersCollection.find().toList();
+    } else {
+      ordersData = await ordersCollection
+          .find(mongo.where.eq('seller_name', widget.loggedInUser))
+          .toList();
+    }
+
     await db.close();
     return ordersData;
   }
@@ -34,7 +54,6 @@ class _OrderManagementState extends State<OrderManagement> {
     await db.open();
     final collection = db.collection(MongoOrderDatabase.collectionName);
 
-    // Update the status in MongoDB
     await collection.updateOne(
       mongo.where.eq('_id', mongo.ObjectId.fromHexString(orderId)),
       mongo.modify.set('order_status', newStatus),
@@ -42,21 +61,19 @@ class _OrderManagementState extends State<OrderManagement> {
 
     await db.close();
     setState(() {
-      _ordersFuture = _fetchAllOrders(); // Refresh the list
+      _ordersFuture = _fetchAllOrders(widget.loggedInUser);
     });
   }
 
   void _showStatusUpdateDialog(Map<String, dynamic> order) {
     String selectedStatus = order['order_status'] ?? 'Order Confirmed';
-    bool isLoading = false; // Track loading state
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: const Row(
             children: [
               Icon(Icons.update, color: Color(0xFF835708)),
@@ -101,45 +118,31 @@ class _OrderManagementState extends State<OrderManagement> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.grey),
+              child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton.icon(
+              onPressed: () async {
+                await _updateOrderStatus(
+                    order['_id'].toHexString(), selectedStatus);
+                Navigator.pop(context);
+              },
+              icon: const Icon(Icons.check_circle),
+              label: const Text('Update'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF835708),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               ),
             ),
-            isLoading // Check if loading state is true
-                ? const Center(
-                    child:
-                        CircularProgressIndicator()) // Show loading indicator
-                : ElevatedButton.icon(
-                    onPressed: () async {
-                      setState(() {
-                        isLoading = true; // Set loading to true
-                      });
-
-                      await _updateOrderStatus(
-                          order['_id'].toHexString(), selectedStatus);
-
-                      Navigator.pop(context); // Close the dialog
-                    },
-                    icon: const Icon(Icons.check_circle),
-                    label: const Text('Update'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF835708),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 12),
-                    ),
-                  ),
           ],
         );
       },
     );
   }
 
-// Helper method to build dropdown items
   List<DropdownMenuItem<String>> _buildDropdownItems() {
     const statuses = [
       'Order Confirmed',
@@ -148,16 +151,9 @@ class _OrderManagementState extends State<OrderManagement> {
       'Canceled',
       'Pending'
     ];
-
-    return statuses.map((status) {
-      return DropdownMenuItem(
-        value: status,
-        child: Text(
-          status,
-          style: const TextStyle(fontSize: 16),
-        ),
-      );
-    }).toList();
+    return statuses
+        .map((status) => DropdownMenuItem(value: status, child: Text(status)))
+        .toList();
   }
 
   @override
@@ -186,8 +182,7 @@ class _OrderManagementState extends State<OrderManagement> {
                   margin: const EdgeInsets.all(10.0),
                   elevation: 8,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
+                      borderRadius: BorderRadius.circular(12.0)),
                   child: Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: Column(
@@ -203,16 +198,11 @@ class _OrderManagementState extends State<OrderManagement> {
                               fit: BoxFit.cover,
                             ),
                           ),
-                          title: Text(
-                            order['product_name'],
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
+                          title: Text(order['product_name'],
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 18)),
                           subtitle: Text(
-                            'Price: LKR ${order['price'].toStringAsFixed(2)}\n'
-                            'Ordered by: ${order['username']}',
+                            'Price: LKR ${order['price'].toStringAsFixed(2)}\nOrdered by: ${order['username']}',
                             style: const TextStyle(color: Colors.grey),
                           ),
                           trailing: _buildStatusBadge(order['order_status']),
@@ -224,12 +214,9 @@ class _OrderManagementState extends State<OrderManagement> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Shipping Address:',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                              const Text('Shipping Address:',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
                               const SizedBox(height: 4),
                               Text(order['shipping_address']),
                               const SizedBox(height: 12),
@@ -250,8 +237,7 @@ class _OrderManagementState extends State<OrderManagement> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
+                                  borderRadius: BorderRadius.circular(8.0)),
                             ),
                           ),
                         ),
@@ -269,7 +255,6 @@ class _OrderManagementState extends State<OrderManagement> {
 
   Widget _buildStatusBadge(String status) {
     Color statusColor;
-
     switch (status.toLowerCase()) {
       case 'pending':
         statusColor = Colors.orange;
@@ -289,20 +274,14 @@ class _OrderManagementState extends State<OrderManagement> {
       default:
         statusColor = Colors.grey;
     }
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: statusColor.withOpacity(0.2),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Text(
-        status,
-        style: TextStyle(
-          color: statusColor,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+      child: Text(status,
+          style: TextStyle(color: statusColor, fontWeight: FontWeight.bold)),
     );
   }
 }

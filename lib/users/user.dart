@@ -235,18 +235,33 @@ class RegisterPage extends StatelessWidget {
                       );
                       return;
                     }
+
                     // User Registration Logic
                     try {
-                      // Simulate registration logic with a delay
-                      await Future.delayed(const Duration(seconds: 1));
+                      final newUser = User(
+                        username: usernameController.text,
+                        password: passwordController.text,
+                        email: emailController.text,
+                        userRole: selectedUserRole!,
+                        contactNumber: contactNumberController.text,
+                        address: addressController.text,
+                      );
+
+                      // Attempt to register the user in MongoDB
+                      await MongoDatabase.registerUser(newUser);
+
+                      // Show success message only if registration succeeds
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                             content: Text('User registered successfully!')),
                       );
                       Navigator.pushReplacementNamed(context, '/login');
                     } catch (e) {
+                      // Display error message if registration fails
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(e.toString())),
+                        SnackBar(
+                            content:
+                                Text('Registration failed: ${e.toString()}')),
                       );
                     }
                   },
@@ -266,6 +281,7 @@ class RegisterPage extends StatelessWidget {
                   ),
                 ),
               ),
+
               const SizedBox(height: 10),
               // Already have an account? Login
               GestureDetector(
@@ -320,7 +336,7 @@ class RegisterPage extends StatelessWidget {
         onChanged: (value) {
           selectedUserRole = value;
         },
-        items: ['Admin', 'Customer']
+        items: ['Vendor', 'Customer']
             .map((role) => DropdownMenuItem(
                   value: role,
                   child: Text(role),
@@ -453,13 +469,28 @@ class LoginPage extends StatelessWidget {
             Navigator.pushReplacementNamed(
               context,
               '/admin_dashboard',
-              arguments: user,
+              arguments: {
+                'loggedInUser': usernameController.text,
+                'userRole': user.userRole,
+              },
             );
           } else if (user.userRole == "Customer") {
             Navigator.pushReplacementNamed(
               context,
               '/home',
-              arguments: {'loggedInUser': usernameController.text},
+              arguments: {
+                'loggedInUser': usernameController.text,
+                'userRole': user.userRole,
+              },
+            );
+          } else if (user.userRole == "Vendor") {
+            Navigator.pushReplacementNamed(
+              context,
+              '/home',
+              arguments: {
+                'loggedInUser': usernameController.text,
+                'userRole': user.userRole,
+              },
             );
           }
         } else {

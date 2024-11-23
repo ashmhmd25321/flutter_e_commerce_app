@@ -7,8 +7,9 @@ class Order {
   final String username;
   final DateTime orderedDate;
   final String shippingAddress;
-  final String imageUrl; // New field for the product image URL
-  final String orderStatus; // New field for the order status
+  final String imageUrl;
+  final String orderStatus;
+  final String sellerName; // New seller name field
 
   Order({
     required this.productName,
@@ -16,8 +17,9 @@ class Order {
     required this.username,
     required this.orderedDate,
     required this.shippingAddress,
-    required this.imageUrl, // Add this to the constructor
-    required this.orderStatus, // Add this to the constructor
+    required this.imageUrl,
+    required this.orderStatus,
+    required this.sellerName, // Add it to the constructor
   });
 
   Map<String, dynamic> toMap() {
@@ -27,8 +29,9 @@ class Order {
       'username': username,
       'ordered_date': orderedDate.toIso8601String(),
       'shipping_address': shippingAddress,
-      'image_url': imageUrl, // Add to the map
-      'order_status': orderStatus, // Add to the map
+      'image_url': imageUrl,
+      'order_status': orderStatus,
+      'seller_name': sellerName,
     };
   }
 }
