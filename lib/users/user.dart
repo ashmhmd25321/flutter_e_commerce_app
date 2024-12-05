@@ -478,6 +478,7 @@ class LoginPage extends StatelessWidget {
                         arguments: {
                           'loggedInUser': usernameController.text,
                           'userRole': user.userRole,
+                          'district': district,
                         },
                       );
                     } else if (user.userRole == "Customer" ||

@@ -15,6 +15,7 @@ class Product {
   final String category;
   final String subcategory;
   final String sellerName;
+  final String productDescription;
 
   Product({
     required this.id,
@@ -27,7 +28,8 @@ class Product {
     required this.contactNumber,
     required this.category,
     required this.subcategory,
-    required this.sellerName, // Initialize seller name
+    required this.sellerName,
+    required this.productDescription,
   });
 
   factory Product.fromMap(Map<String, dynamic> map) {
@@ -42,7 +44,8 @@ class Product {
       contactNumber: map['contactNumber'] ?? 'No Contact Info',
       category: map['category'] ?? 'No Category',
       subcategory: map['subcategory'] ?? 'No Subcategory',
-      sellerName: map['sellerName'] ?? 'Unknown Seller', // Retrieve seller name
+      sellerName: map['sellerName'] ?? 'Unknown Seller',
+      productDescription: map['productDescription'] ?? 'No Description',
     );
   }
 }
@@ -50,16 +53,24 @@ class Product {
 class MongoDatabase {
   static const String collectionName = 'products';
 
-  static Future<List<Product>> getProductsBySeller(String sellerName) async {
+  static Future<List<Product>> getProductsBySeller(String loggedInUser) async {
     final db = await mongo.Db.create(MONGO_URL);
     await db.open();
 
     final collection = db.collection(collectionName);
-    final products = await collection
-        .find(mongo.where.eq('sellerName', sellerName))
-        .toList();
-    await db.close();
+    List<Map<String, dynamic>> products;
 
+    if (loggedInUser == 'Admin') {
+      // Fetch all products if the logged-in user is Admin
+      products = await collection.find().toList();
+    } else {
+      // Fetch products specific to the seller
+      products = await collection
+          .find(mongo.where.eq('sellerName', loggedInUser))
+          .toList();
+    }
+
+    await db.close();
     return products.map((map) => Product.fromMap(map)).toList();
   }
 
@@ -336,7 +347,38 @@ class _ViewProductsPageState extends State<ViewProductsPage> {
                                   color: Colors.grey,
                                 ),
                               ),
-                              const SizedBox(height: 10),
+                              const SizedBox(height: 4),
+                              const Text(
+                                'Product Description:',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14.0,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              const SizedBox(
+                                  height:
+                                      8.0), // Adds spacing between the title and the description
+                              Container(
+                                padding: const EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  border: Border.all(
+                                      color: const Color(0xFF6B4F4F),
+                                      width: 1.5),
+                                ),
+                                child: Text(
+                                  product
+                                      .productDescription, // The description text
+                                  style: const TextStyle(
+                                    fontSize: 16.0,
+                                    color: Colors.grey,
+                                  ),
+                                  textAlign: TextAlign
+                                      .justify, // Aligns text for better readability
+                                ),
+                              ),
+                              const SizedBox(height: 12),
                             ],
                           ),
                         ),

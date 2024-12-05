@@ -7,11 +7,13 @@ class AdminDashboard extends StatefulWidget {
     required this.title,
     required this.loggedInUser,
     required this.userRole,
+    required this.district,
   });
 
   final String title;
   final String loggedInUser;
   final String userRole;
+  final String district;
 
   @override
   State<AdminDashboard> createState() => _AdminDashboardState();
@@ -20,8 +22,7 @@ class AdminDashboard extends StatefulWidget {
 class _AdminDashboardState extends State<AdminDashboard> {
   void _logout() {
     // Add your logout logic here
-    Navigator.pushReplacementNamed(
-        context, '/login'); // Adjust the route as necessary
+    Navigator.pushReplacementNamed(context, '/login');
   }
 
   // Go to Homepage method with arguments
@@ -30,8 +31,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
       context,
       '/home',
       arguments: {
-        'loggedInUser': widget.loggedInUser, // Pass the logged in user
-        'userRole': 'Admin', // Or pass the actual role here if needed
+        'loggedInUser': widget.loggedInUser,
+        'district': widget.district,
+        'userRole': 'Admin',
       },
     );
   }

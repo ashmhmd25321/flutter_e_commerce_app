@@ -604,6 +604,7 @@ class _CustomerHomePageState extends State<CustomerHomePage>
                     MaterialPageRoute(
                       builder: (context) => AdminDashboard(
                         loggedInUser: widget.loggedInUser,
+                        district: widget.district,
                         title: 'Ezy Buy',
                         userRole: 'Admin',
                       ),

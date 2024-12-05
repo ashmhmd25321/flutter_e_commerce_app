@@ -68,6 +68,7 @@ class MyApp extends StatelessWidget {
                       title: 'EzyBuy',
                       loggedInUser: args['loggedInUser'],
                       userRole: args['userRole'],
+                      district: args['district'],
                     ));
 
           case '/login':

@@ -20,7 +20,8 @@ class Product {
   final String location;
   final String category;
   final String subcategory;
-  final String sellerName; // New field
+  final String sellerName;
+  final String productDescription;
 
   Product({
     required this.id,
@@ -33,7 +34,8 @@ class Product {
     required this.location,
     required this.category,
     required this.subcategory,
-    required this.sellerName, // Initialize sellerName
+    required this.sellerName,
+    required this.productDescription,
   });
 
   Map<String, dynamic> toMap() {
@@ -48,7 +50,8 @@ class Product {
       'location': location,
       'category': category,
       'subcategory': subcategory,
-      'sellerName': sellerName, // Map sellerName
+      'sellerName': sellerName,
+      'productDescription': productDescription,
     };
   }
 }
@@ -92,6 +95,7 @@ class _AddProductPageState extends State<AddProductPage> {
   final TextEditingController productPriceController = TextEditingController();
   final TextEditingController contactNumberController = TextEditingController();
   final TextEditingController sellerNameController = TextEditingController();
+  TextEditingController productDescriptionController = TextEditingController();
   String? selectedDistrict;
   String? selectedCategory;
   String? selectedSubcategory;
@@ -312,6 +316,7 @@ class _AddProductPageState extends State<AddProductPage> {
     final price = double.tryParse(productPriceController.text) ?? 0.0;
     final contactNumber = contactNumberController.text;
     final sellerName = sellerNameController.text;
+    final productDescription = productDescriptionController.text;
 
     if (pId.isNotEmpty &&
         name.isNotEmpty &&
@@ -321,7 +326,8 @@ class _AddProductPageState extends State<AddProductPage> {
         selectedCategory != null &&
         selectedSubcategory != null &&
         _imagePath != null &&
-        sellerName.isNotEmpty) {
+        sellerName.isNotEmpty &&
+        productDescription.isNotEmpty) {
       // Validate seller name
       setState(() {
         _isLoading = true;
@@ -346,7 +352,8 @@ class _AddProductPageState extends State<AddProductPage> {
             location: selectedDistrict!,
             category: selectedCategory!,
             subcategory: selectedSubcategory!,
-            sellerName: sellerName, // Pass seller name
+            sellerName: sellerName,
+            productDescription: productDescription,
           );
           await MongoDatabase.addProduct(product);
 
@@ -358,7 +365,8 @@ class _AddProductPageState extends State<AddProductPage> {
           productNameController.clear();
           productPriceController.clear();
           contactNumberController.clear();
-          sellerNameController.clear(); // Clear seller name field
+          sellerNameController.clear();
+          productDescriptionController.clear();
           setState(() {
             _imagePath = null;
             selectedDistrict = null;
@@ -392,9 +400,8 @@ class _AddProductPageState extends State<AddProductPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Product'),
-        backgroundColor:
-            const Color(0xFF6B4F4F), // A custom color for the app bar
-        elevation: 4.0, // Adds shadow for more depth
+        backgroundColor: const Color(0xFF6B4F4F),
+        elevation: 4.0,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -448,6 +455,16 @@ class _AddProductPageState extends State<AddProductPage> {
                   ),
                   const SizedBox(height: 16.0),
 
+                  // Product Description (New field)
+                  _buildInputField(
+                    controller: productDescriptionController,
+                    label: 'Product Description',
+                    icon: Icons.description,
+                    keyboardType: TextInputType.text,
+                    maxLines: 5, // Allows multiline input
+                  ),
+                  const SizedBox(height: 16.0),
+
                   // District Dropdown
                   _buildDropdownField(
                     label: 'Location',
@@ -461,8 +478,7 @@ class _AddProductPageState extends State<AddProductPage> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.my_location),
-                    onPressed:
-                        _addUserDistrictToList, // Trigger location fetching
+                    onPressed: _addUserDistrictToList,
                     color: const Color(0xFF6B4F4F),
                   ),
                   const SizedBox(height: 16.0),
@@ -475,7 +491,7 @@ class _AddProductPageState extends State<AddProductPage> {
                     onChanged: (value) {
                       setState(() {
                         selectedCategory = value;
-                        selectedSubcategory = null; // Reset subcategory
+                        selectedSubcategory = null;
                       });
                     },
                   ),
@@ -513,7 +529,7 @@ class _AddProductPageState extends State<AddProductPage> {
                         ),
                         padding: const EdgeInsets.symmetric(
                             horizontal: 30.0, vertical: 15.0),
-                        elevation: 5.0, // Adds shadow to the button
+                        elevation: 5.0,
                       ),
                     ),
                   ),
@@ -539,7 +555,7 @@ class _AddProductPageState extends State<AddProductPage> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12.0),
                         ),
-                        elevation: 8.0, // Adds shadow to the button
+                        elevation: 8.0,
                       ),
                       child: const Text(
                         'Add Product',
@@ -559,11 +575,13 @@ class _AddProductPageState extends State<AddProductPage> {
     required IconData icon,
     TextInputType? keyboardType,
     bool enabled = true,
+    int maxLines = 1, // Added maxLines parameter with a default value of 1
   }) {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
       enabled: enabled,
+      maxLines: maxLines, // Apply maxLines to TextField
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: const Color(0xFF6B4F4F)),

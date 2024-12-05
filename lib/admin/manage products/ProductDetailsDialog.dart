@@ -121,6 +121,17 @@ class ProductDetailsDialog extends StatelessWidget {
                     fontSize: 16.0, color: Color.fromARGB(255, 112, 110, 110)),
                 textAlign: TextAlign.center,
               ),
+              const SizedBox(height: 10),
+              Text(
+                'Description: ${product.productDescription}',
+                style: const TextStyle(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w500,
+                  color: Color.fromARGB(255, 112, 110, 110),
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 20),
               // Buy Now Button
               ElevatedButton.icon(
