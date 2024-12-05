@@ -12,7 +12,7 @@ class SalesData {
 }
 
 class SalesOverviewChart extends StatelessWidget {
-  const SalesOverviewChart({Key? key}) : super(key: key);
+  const SalesOverviewChart({super.key});
 
   @override
   Widget build(BuildContext context) {

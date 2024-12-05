@@ -7,8 +7,7 @@ import 'package:mongo_dart/mongo_dart.dart' as mongo;
 class OrderManagement extends StatefulWidget {
   final String loggedInUser;
 
-  const OrderManagement({Key? key, required this.loggedInUser})
-      : super(key: key);
+  const OrderManagement({super.key, required this.loggedInUser});
 
   @override
   State<OrderManagement> createState() => _OrderManagementState();

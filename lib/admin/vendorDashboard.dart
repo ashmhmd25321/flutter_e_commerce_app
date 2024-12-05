@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 
 class VendorDashboard extends StatefulWidget {
   final String loggedInUser;
+  final String district;
 
-  const VendorDashboard({Key? key, required this.loggedInUser})
-      : super(key: key);
+  const VendorDashboard({
+    super.key,
+    required this.loggedInUser,
+    required this.district,
+  });
 
   @override
   State<VendorDashboard> createState() => _VendorDashboardState();
@@ -22,7 +26,8 @@ class _VendorDashboardState extends State<VendorDashboard> {
       context,
       '/home',
       arguments: {
-        'loggedInUser': widget.loggedInUser, // Pass the logged in user
+        'loggedInUser': widget.loggedInUser,
+        'district': widget.district, // Pass the logged in user
         'userRole': 'Vendor', // Or pass the actual role here if needed
       },
     );
@@ -97,7 +102,7 @@ class _VendorDashboardState extends State<VendorDashboard> {
                     _buildManagementSection(
                       'Manage Products',
                       Icons.shopping_bag,
-                      '/manageProducts',
+                      '/manageProduct',
                       widget.loggedInUser,
                     ),
                     _buildManagementSection(

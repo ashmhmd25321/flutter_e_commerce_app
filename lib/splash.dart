@@ -1,7 +1,5 @@
 import 'package:ecommerce_app/home.dart';
-import 'package:ecommerce_app/main.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class Splash extends StatefulWidget {
   const Splash({super.key});
@@ -17,15 +15,23 @@ class _SplashState extends State<Splash> {
     // _navigatetohome();
   }
 
-  _navigatetohome(String loggedInUser, String userRole) async {
+  String district = 'Colombo';
+  _navigatetohome(String loggedInUser, String userRole, String district) async {
+    if (district == null) {
+      // Handle the case where district might be null
+      print('District is null!');
+      return;
+    }
+
     await Future.delayed(const Duration(milliseconds: 1500), () {});
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (context) => CustomerHomePage(
           title: 'EzyBuy',
-          loggedInUser: loggedInUser, // Pass the logged in user here
+          loggedInUser: loggedInUser, // Pass the logged-in user here
           userRole: userRole, // Pass the userRole here
+          district: district, // Pass the district here
         ),
       ),
     );

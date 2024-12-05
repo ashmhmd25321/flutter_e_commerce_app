@@ -64,7 +64,7 @@ class MongoDb {
 class ViewProfile extends StatefulWidget {
   final String loggedInUser;
 
-  const ViewProfile({Key? key, required this.loggedInUser}) : super(key: key);
+  const ViewProfile({super.key, required this.loggedInUser});
 
   @override
   _ViewProfileState createState() => _ViewProfileState();
@@ -108,9 +108,8 @@ class _ViewProfileState extends State<ViewProfile> {
   }
 
   void _showChangePasswordDialog() {
-    final TextEditingController _newPasswordController =
-        TextEditingController();
-    final TextEditingController _confirmPasswordController =
+    final TextEditingController newPasswordController = TextEditingController();
+    final TextEditingController confirmPasswordController =
         TextEditingController();
 
     showDialog(
@@ -122,12 +121,12 @@ class _ViewProfileState extends State<ViewProfile> {
             child: Column(
               children: [
                 TextField(
-                  controller: _newPasswordController,
+                  controller: newPasswordController,
                   decoration: const InputDecoration(labelText: 'New Password'),
                   obscureText: true,
                 ),
                 TextField(
-                  controller: _confirmPasswordController,
+                  controller: confirmPasswordController,
                   decoration:
                       const InputDecoration(labelText: 'Confirm Password'),
                   obscureText: true,
@@ -142,10 +141,10 @@ class _ViewProfileState extends State<ViewProfile> {
             ),
             TextButton(
               onPressed: () async {
-                if (_newPasswordController.text ==
-                    _confirmPasswordController.text) {
+                if (newPasswordController.text ==
+                    confirmPasswordController.text) {
                   await MongoDb.changePassword(
-                      widget.loggedInUser, _newPasswordController.text);
+                      widget.loggedInUser, newPasswordController.text);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                         content: Text('Password changed successfully!')),

@@ -1,5 +1,7 @@
 import 'package:ecommerce_app/dbConfig/constant.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:lottie/lottie.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 
@@ -150,10 +152,12 @@ class RegisterPage extends StatelessWidget {
   final TextEditingController addressController = TextEditingController();
   String? selectedUserRole;
 
+  RegisterPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 242, 248, 208),
+      backgroundColor: const Color.fromARGB(255, 242, 248, 208),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -315,7 +319,7 @@ class RegisterPage extends StatelessWidget {
       obscureText: obscureText,
       decoration: InputDecoration(
         labelText: labelText,
-        prefixIcon: Icon(icon, color: Color(0xFF6B4F4F)),
+        prefixIcon: Icon(icon, color: const Color(0xFF6B4F4F)),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
@@ -355,10 +359,56 @@ class LoginPage extends StatelessWidget {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  LoginPage({super.key});
+
+  // Method to fetch the user's location
+  Future<String?> getUserNearestCity() async {
+    try {
+      // Request location permission
+      LocationPermission permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return "Location permission denied.";
+      }
+
+      // Get current location
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+
+      // Reverse geocode to get placemarks (nearby cities)
+      List<Placemark> placemarks =
+          await placemarkFromCoordinates(position.latitude, position.longitude);
+
+      if (placemarks.isNotEmpty) {
+        // Attempt to get the nearest city from the locality field
+        String? city = placemarks.first.locality;
+        if (city != null && city.isNotEmpty) {
+          return city; // Return the nearest city if available
+        }
+
+        // Fallback to subLocality or subAdministrativeArea if locality is missing
+        String? district = placemarks.first.subLocality ??
+            placemarks.first.subAdministrativeArea;
+        if (district != null && district.isNotEmpty) {
+          return district; // Return the district or sub-area name
+        }
+
+        // Lastly, fallback to administrativeArea
+        return placemarks.first.administrativeArea ??
+            "Unable to determine city.";
+      } else {
+        return "Unable to determine city.";
+      }
+    } catch (e) {
+      return "Error: $e";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 242, 248, 208), // Background color
+      backgroundColor:
+          const Color.fromARGB(255, 242, 248, 208), // Background color
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -397,7 +447,77 @@ class LoginPage extends StatelessWidget {
               const SizedBox(height: 20.0),
 
               // Login Button
-              _buildLoginButton(context),
+              ElevatedButton(
+                onPressed: () async {
+                  // Trigger location fetching when logging in
+                  final district = await getUserNearestCity();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Detected Location: ${district ?? "Unknown"}',
+                      ),
+                    ),
+                  );
+
+                  // Now perform the login logic
+                  User? user = await MongoDatabase.loginUser(
+                    usernameController.text,
+                    passwordController.text,
+                  );
+
+                  if (user != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Login successful')),
+                    );
+
+                    // Navigate to the correct dashboard with user role
+                    if (user.userRole == "Admin") {
+                      Navigator.pushReplacementNamed(
+                        context,
+                        '/admin_dashboard',
+                        arguments: {
+                          'loggedInUser': usernameController.text,
+                          'userRole': user.userRole,
+                        },
+                      );
+                    } else if (user.userRole == "Customer" ||
+                        user.userRole == "Vendor") {
+                      Navigator.pushReplacementNamed(
+                        context,
+                        '/home',
+                        arguments: {
+                          'loggedInUser': usernameController.text,
+                          'userRole': user.userRole,
+                          'district': district,
+                        },
+                      );
+                    }
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('Invalid username or password')),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: const Color(0xFF6B4F4F),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 120, vertical: 15),
+                  animationDuration: const Duration(milliseconds: 500),
+                  elevation: 5,
+                ),
+                child: const Text(
+                  'Login',
+                  style: TextStyle(fontSize: 18.0),
+                ),
+              ),
+
+              // Login Button
+              // _buildLoginButton(context),
               const SizedBox(height: 10.0),
 
               // Register Button
@@ -410,6 +530,37 @@ class LoginPage extends StatelessWidget {
                 ),
                 child: const Text('Create an account'),
               ),
+              // Display district using FutureBuilder
+              const SizedBox(height: 20.0),
+              FutureBuilder<String?>(
+                future: getUserNearestCity(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done &&
+                      snapshot.hasData &&
+                      snapshot.data != null) {
+                    return Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on,
+                          color: Color(0xFF6B4F4F),
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'You are Currently in: ${snapshot.data}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.black87,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                  // Return a placeholder while loading or on error
+                  return const SizedBox.shrink();
+                },
+              ),
             ],
           ),
         ),
@@ -420,7 +571,7 @@ class LoginPage extends StatelessWidget {
   Widget _buildTitle() {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Color(0xFF6B4F4F), width: 2.0),
+        border: Border.all(color: const Color(0xFF6B4F4F), width: 2.0),
         borderRadius: BorderRadius.circular(10.0),
       ),
       padding: const EdgeInsets.all(10.0),
@@ -442,7 +593,7 @@ class LoginPage extends StatelessWidget {
       controller: controller,
       decoration: InputDecoration(
         labelText: labelText,
-        prefixIcon: Icon(icon, color: Color(0xFF6B4F4F)),
+        prefixIcon: Icon(icon, color: const Color(0xFF6B4F4F)),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
@@ -461,7 +612,7 @@ class LoginPage extends StatelessWidget {
 
         if (user != null) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Login successful')),
+            const SnackBar(content: Text('Login successful')),
           );
 
           // Navigate to the correct dashboard with user ID

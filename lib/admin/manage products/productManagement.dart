@@ -3,7 +3,8 @@ import 'package:ecommerce_app/admin/manage%20products/addProduct.dart';
 import 'package:ecommerce_app/admin/manage%20products/viewProducts.dart';
 
 class ProductManagementPage extends StatelessWidget {
-  const ProductManagementPage({super.key});
+  final String loggedInUser;
+  const ProductManagementPage({super.key, required this.loggedInUser});
 
   @override
   Widget build(BuildContext context) {
@@ -39,18 +40,23 @@ class ProductManagementPage extends StatelessWidget {
                 () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => AddProductPage()),
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          AddProductPage(loggedInUser: loggedInUser),
+                    ),
                   );
                 },
               ),
-              const SizedBox(height: 20), // Add spacing between the buttons
+              const SizedBox(height: 20),
               _buildManagementButton(
                 context,
                 'View Products',
                 () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => ViewProductsPage()),
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            ViewProductsPage(loggedInUser: loggedInUser)),
                   );
                 },
               ),

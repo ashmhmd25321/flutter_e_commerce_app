@@ -100,7 +100,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   ),
                 ],
               ),
-              child: SalesOverviewChart(),
+              child: const SalesOverviewChart(),
             ),
             const SizedBox(height: 20),
             Expanded(

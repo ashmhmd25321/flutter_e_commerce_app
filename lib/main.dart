@@ -22,6 +22,8 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -52,6 +54,7 @@ class MyApp extends StatelessWidget {
                 title: 'EzyBuy',
                 loggedInUser: args['loggedInUser'],
                 userRole: args['userRole'],
+                district: args['district'],
               ),
             );
 
@@ -71,14 +74,27 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(builder: (context) => LoginPage());
 
           case '/manageProduct':
+            final args = settings.arguments as Map<String, dynamic>;
+
             return MaterialPageRoute(
-                builder: (context) => const ProductManagementPage());
+              builder: (context) => ProductManagementPage(
+                loggedInUser: args['loggedInUser'],
+              ),
+            );
 
           case '/addProduct':
-            return MaterialPageRoute(builder: (context) => AddProductPage());
+            final args = settings.arguments as Map<String, dynamic>;
+            return MaterialPageRoute(
+                builder: (context) => AddProductPage(
+                      loggedInUser: args['loggedInUser'],
+                    ));
 
           case '/viewProduct':
-            return MaterialPageRoute(builder: (context) => ViewProductsPage());
+            final args = settings.arguments as Map<String, dynamic>;
+            return MaterialPageRoute(
+                builder: (context) => ViewProductsPage(
+                      loggedInUser: args['loggedInUser'],
+                    ));
 
           case '/manageUsers':
             return MaterialPageRoute(builder: (context) => ManageUsersPage());

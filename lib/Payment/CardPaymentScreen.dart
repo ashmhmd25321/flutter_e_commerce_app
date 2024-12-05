@@ -4,6 +4,7 @@ import 'package:ecommerce_app/dbConfig/mongoDb.dart'; // Import MongoOrderDataba
 import 'package:flutter/material.dart';
 
 class CardPaymentScreen extends StatefulWidget {
+  final String productId;
   final String productName;
   final double productPrice;
   final String imageUrl;
@@ -16,7 +17,8 @@ class CardPaymentScreen extends StatefulWidget {
     required this.productPrice,
     required this.imageUrl,
     required this.loggedInUser,
-    required this.sellerName, // Initialize sellerName
+    required this.sellerName,
+    required this.productId,
   });
 
   @override
@@ -47,7 +49,7 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Payment for ${widget.productName}'),
-        backgroundColor: Color(0xFF6B4F4F),
+        backgroundColor: const Color(0xFF6B4F4F),
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -210,7 +212,8 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
-                          prefixIcon: Icon(Icons.location_on, color: iconColor),
+                          prefixIcon:
+                              const Icon(Icons.location_on, color: iconColor),
                         ),
                         keyboardType: TextInputType.streetAddress,
                         validator: (value) {
@@ -230,7 +233,8 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
-                          prefixIcon: Icon(Icons.credit_card, color: iconColor),
+                          prefixIcon:
+                              const Icon(Icons.credit_card, color: iconColor),
                         ),
                         keyboardType: TextInputType.number,
                         validator: (value) {
@@ -255,8 +259,8 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(15),
                                 ),
-                                prefixIcon:
-                                    Icon(Icons.date_range, color: iconColor),
+                                prefixIcon: const Icon(Icons.date_range,
+                                    color: iconColor),
                               ),
                               keyboardType: TextInputType.datetime,
                               validator: (value) {
@@ -276,7 +280,8 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(15),
                                 ),
-                                prefixIcon: Icon(Icons.lock, color: iconColor),
+                                prefixIcon:
+                                    const Icon(Icons.lock, color: iconColor),
                               ),
                               keyboardType: TextInputType.number,
                               validator: (value) {
@@ -351,6 +356,7 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
 
         // Create an Order object
         Order order = Order(
+          productId: widget.productId,
           productName: widget.productName,
           price: totalAmount,
           username: _usernameController.text,

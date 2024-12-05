@@ -1,10 +1,13 @@
 import 'package:ecommerce_app/admin/dashboard.dart';
+import 'package:ecommerce_app/admin/manage%20products/ProductReviewsDialog.dart';
 import 'package:ecommerce_app/admin/vendorDashboard.dart';
+import 'package:ecommerce_app/dbConfig/constant.dart';
 import 'package:ecommerce_app/users/ViewOrderToUser.dart';
 import 'package:flutter/material.dart';
 import 'package:ecommerce_app/admin/manage%20products/viewProducts.dart';
 import 'admin/manage%20products/ProductDetailsDialog.dart';
 import 'users/ViewProfile.dart';
+import 'package:mongo_dart/mongo_dart.dart' as mongo;
 
 class CustomerHomePage extends StatefulWidget {
   const CustomerHomePage({
@@ -12,11 +15,13 @@ class CustomerHomePage extends StatefulWidget {
     required this.title,
     required this.loggedInUser,
     required this.userRole,
+    required this.district,
   });
 
   final String title;
   final String loggedInUser;
   final String userRole;
+  final String district;
 
   @override
   _CustomerHomePageState createState() => _CustomerHomePageState();
@@ -34,7 +39,41 @@ class _CustomerHomePageState extends State<CustomerHomePage>
   @override
   void initState() {
     super.initState();
-    _productsFuture = MongoDatabase.getProducts();
+    _productsFuture = fetchProducts().then((products) {
+      setState(() {
+        // Default filter for the user's district
+        _filteredProducts = products
+            .where((product) => product.location == widget.district)
+            .toList();
+        _selectedLocation = widget.district; // Set initial location filter
+      });
+      return products;
+    });
+  }
+
+  // Fetch products from MongoDB
+  Future<List<Product>> fetchProducts() async {
+    final db = await mongo.Db.create(MONGO_URL);
+    await db.open();
+    final productsCollection = db.collection('products');
+    final productsList = await productsCollection.find().toList();
+    await db.close();
+
+    return productsList.map((productData) {
+      return Product.fromMap(
+          productData); // Assuming a method to map from Map to Product
+    }).toList();
+  }
+
+  // Fetch reviews for a specific product
+  Future<List<Map<String, dynamic>>> fetchReviews(String productId) async {
+    final db = await mongo.Db.create(MONGO_URL);
+    await db.open();
+    final reviewsCollection = db.collection('product_reviews');
+    final reviews =
+        await reviewsCollection.find({'product_id': productId}).toList();
+    await db.close();
+    return reviews;
   }
 
   void _filterProducts(String query) {
@@ -137,7 +176,7 @@ class _CustomerHomePageState extends State<CustomerHomePage>
                                   value: location,
                                   child: Text(location),
                                 );
-                              }).toList(),
+                              }),
                             ],
                             onChanged: _onLocationChanged,
                             isExpanded: true,
@@ -156,7 +195,7 @@ class _CustomerHomePageState extends State<CustomerHomePage>
                                   value: category,
                                   child: Text(category),
                                 );
-                              }).toList(),
+                              }),
                             ],
                             onChanged: _onCategoryChanged,
                             isExpanded: true,
@@ -198,7 +237,7 @@ class _CustomerHomePageState extends State<CustomerHomePage>
                                           value: subcategory,
                                           child: Text(subcategory),
                                         );
-                                      }).toList(),
+                                      }),
                                     ],
                                     onChanged: _onSubcategoryChanged,
                                     isExpanded: true,
@@ -215,7 +254,7 @@ class _CustomerHomePageState extends State<CustomerHomePage>
                 ElevatedButton(
                   onPressed: () {
                     setState(() {
-                      _filterProducts(_searchController.text);
+                      _filterProducts("");
                     });
                     Navigator.of(context).pop();
                   },
@@ -234,10 +273,50 @@ class _CustomerHomePageState extends State<CustomerHomePage>
     return Scaffold(
         appBar: AppBar(
           backgroundColor: const Color(0xFF6B4F4F),
-          title: Text('${widget.title} - ${widget.loggedInUser}'),
+          leading: null,
+          automaticallyImplyLeading: false,
+          title: Row(
+            children: [
+              const CircleAvatar(
+                backgroundColor: Colors.white,
+                radius: 20,
+                child: Icon(
+                  Icons.person,
+                  color: Color.fromARGB(
+                      255, 170, 101, 22), // A vibrant color for the icon
+                  size: 24.0,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    widget.title,
+                    style: const TextStyle(
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${widget.loggedInUser} - ${widget.district}',
+                    style: const TextStyle(
+                      fontSize: 14.0,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.person),
+              icon: const Icon(Icons.settings, color: Colors.white),
+              tooltip: 'Settings',
               onPressed: () {
                 Navigator.push(
                   context,
@@ -249,10 +328,13 @@ class _CustomerHomePageState extends State<CustomerHomePage>
               },
             ),
             IconButton(
-              icon: const Icon(Icons.logout),
+              icon: const Icon(Icons.logout, color: Colors.white),
+              tooltip: 'Logout',
               onPressed: _logout,
             ),
           ],
+          elevation: 4.0,
+          shadowColor: Colors.black.withOpacity(0.3),
         ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -326,7 +408,7 @@ class _CustomerHomePageState extends State<CustomerHomePage>
                     } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                       return const Center(child: Text('No products available'));
                     } else {
-                      final products = _searchController.text.isEmpty
+                      final products = _filteredProducts.isEmpty
                           ? snapshot.data!
                           : _filteredProducts;
 
@@ -345,13 +427,49 @@ class _CustomerHomePageState extends State<CustomerHomePage>
                             index: index,
                             child: GestureDetector(
                               onTap: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => ProductDetailsDialog(
-                                    product: product,
-                                    loggedInUser: widget.loggedInUser,
-                                  ),
-                                );
+                                if (product.inStock) {
+                                  // Navigate to product details if the product is in stock
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => ProductDetailsDialog(
+                                      product: product,
+                                      loggedInUser: widget.loggedInUser,
+                                    ),
+                                  );
+                                } else {
+                                  // Show an alert dialog if the product is out of stock
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text('Out of Stock'),
+                                      content: const Text(
+                                        'This product cannot be purchased because it is out of stock.',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context)
+                                                .pop(); // Close the dialog
+                                          },
+                                          child: const Text('OK'),
+                                        ),
+                                        ElevatedButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                              showDialog(
+                                                context: context,
+                                                builder: (context) =>
+                                                    ProductReviewsDialog(
+                                                  productId: product.id,
+                                                  productName: product.name,
+                                                ),
+                                              );
+                                            },
+                                            child: const Text('View Reviews'))
+                                      ],
+                                    ),
+                                  );
+                                }
                               },
                               child: Card(
                                 elevation: 10.0,
@@ -470,6 +588,7 @@ class _CustomerHomePageState extends State<CustomerHomePage>
                     MaterialPageRoute(
                       builder: (context) => VendorDashboard(
                         loggedInUser: widget.loggedInUser,
+                        district: widget.district,
                       ),
                     ),
                   );
@@ -518,10 +637,10 @@ class FadeInAnimation extends StatelessWidget {
   final Widget child;
 
   const FadeInAnimation({
-    Key? key,
+    super.key,
     required this.index,
     required this.child,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

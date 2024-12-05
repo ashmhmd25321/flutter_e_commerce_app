@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:mongo_dart_query/src/geometry_obj.dart' as mongo_query;
 
 class ManageUsersPage extends StatefulWidget {
+  const ManageUsersPage({super.key});
+
   @override
   _ManageUsersPageState createState() => _ManageUsersPageState();
 }

@@ -1,3 +1,4 @@
+import 'package:ecommerce_app/admin/manage%20products/ProductReviewsDialog.dart';
 import 'package:flutter/material.dart';
 import 'package:mongo_dart/mongo_dart.dart' as mongo;
 import 'package:ecommerce_app/dbConfig/constant.dart';
@@ -13,7 +14,7 @@ class Product {
   final String contactNumber;
   final String category;
   final String subcategory;
-  final String sellerName; // New field for seller name
+  final String sellerName;
 
   Product({
     required this.id,
@@ -49,12 +50,14 @@ class Product {
 class MongoDatabase {
   static const String collectionName = 'products';
 
-  static Future<List<Product>> getProducts() async {
+  static Future<List<Product>> getProductsBySeller(String sellerName) async {
     final db = await mongo.Db.create(MONGO_URL);
     await db.open();
 
     final collection = db.collection(collectionName);
-    final products = await collection.find().toList();
+    final products = await collection
+        .find(mongo.where.eq('sellerName', sellerName))
+        .toList();
     await db.close();
 
     return products.map((map) => Product.fromMap(map)).toList();
@@ -107,6 +110,10 @@ class MongoDatabase {
 }
 
 class ViewProductsPage extends StatefulWidget {
+  final String loggedInUser;
+
+  const ViewProductsPage({super.key, required this.loggedInUser});
+
   @override
   _ViewProductsPageState createState() => _ViewProductsPageState();
 }
@@ -182,7 +189,7 @@ class _ViewProductsPageState extends State<ViewProductsPage> {
         ),
       ),
       body: FutureBuilder<List<Product>>(
-        future: MongoDatabase.getProducts(),
+        future: MongoDatabase.getProductsBySeller(widget.loggedInUser),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -227,11 +234,56 @@ class _ViewProductsPageState extends State<ViewProductsPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                product.name,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                              GestureDetector(
+                                onTap: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return ProductReviewsDialog(
+                                        productId: product.p_id,
+                                        productName: product.name,
+                                      );
+                                    },
+                                  );
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 6.0, horizontal: 12.0),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.pink.shade200,
+                                        Colors.orange.shade200
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Colors.black26,
+                                        offset: Offset(0, 2),
+                                        blurRadius: 4,
+                                      ),
+                                    ],
+                                  ),
+                                  child: Text(
+                                    product.name,
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                      letterSpacing:
+                                          1.2, // Slight letter spacing for better readability
+                                      shadows: [
+                                        Shadow(
+                                          blurRadius: 4.0,
+                                          color: Colors.black54,
+                                          offset: Offset(2.0, 2.0),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -272,7 +324,7 @@ class _ViewProductsPageState extends State<ViewProductsPage> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Seller: ${product.sellerName}', // Display seller name
+                                'Seller: ${product.sellerName}',
                                 style: const TextStyle(
                                   color: Colors.grey,
                                 ),
@@ -284,6 +336,7 @@ class _ViewProductsPageState extends State<ViewProductsPage> {
                                   color: Colors.grey,
                                 ),
                               ),
+                              const SizedBox(height: 10),
                             ],
                           ),
                         ),

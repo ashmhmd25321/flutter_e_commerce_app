@@ -2,6 +2,7 @@ import '../dbConfig/constant.dart';
 import 'package:mongo_dart/mongo_dart.dart' as mongo;
 
 class Order {
+  final String productId;
   final String productName;
   final double price;
   final String username;
@@ -12,6 +13,7 @@ class Order {
   final String sellerName; // New seller name field
 
   Order({
+    required this.productId,
     required this.productName,
     required this.price,
     required this.username,
@@ -24,6 +26,7 @@ class Order {
 
   Map<String, dynamic> toMap() {
     return {
+      'product_id': productId,
       'product_name': productName,
       'price': price,
       'username': username,
